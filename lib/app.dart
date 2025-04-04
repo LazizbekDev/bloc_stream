@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:test_bloc/bloc/local_event.dart';
+import 'package:test_bloc/bloc/local_state.dart';
 import 'package:test_bloc/bloc/local_stream.dart';
 
 class App extends StatelessWidget {
@@ -18,6 +19,18 @@ class App extends StatelessWidget {
           initialData: 0,
           stream: bloc.streamCounter,
           builder: (context, snapshot) {
+            final state = snapshot.data;
+
+            if (state is IncrementLoading) {
+              debugPrint("IncrementLoading");
+              return const Center(child: CircularProgressIndicator());
+            } else if (state is IncrementError) {
+              debugPrint("IncrementError");
+              return Center(child: Text(state.error));
+            } else if (state is IncrementSuccess) {
+              debugPrint("IncrementSuccess");
+              return Center(child: Text(state.count.toString()));
+            }
             return Center(child: Text(snapshot.data.toString()));
           },
         ),

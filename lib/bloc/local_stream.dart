@@ -1,34 +1,46 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:test_bloc/bloc/local_event.dart';
+import 'package:test_bloc/bloc/local_state.dart';
 
 class LocalStream {
   int counter = 0;
-  final StreamController<int> counterController =
-      StreamController<int>.broadcast();
+  final StreamController<CounterState> counterController =
+      StreamController<CounterState>.broadcast();
   final StreamController<CounterEvent> counterEventController =
       StreamController<CounterEvent>();
   // late final Stream stream;
   StreamSink<CounterEvent> get counterSink => counterEventController.sink;
-  Stream<int> get streamCounter => counterController.stream;
+  Stream<CounterState> get streamCounter => counterController.stream;
+  // Stream<CounterState> get streamState =>
 
   LocalStream() {
-    counterEventController.stream.listen(increment);
+    counterController.add(IncrementInitial(counter));
+    counterEventController.stream.listen(counting);
   }
 
   Sink<CounterEvent> get eventSink {
     return counterEventController.sink;
   }
 
-  void increment(CounterEvent event) {
+  void counting(CounterEvent event) async {
+    counterController.add(IncrementLoading(counter));
     // counter++;
-    if (event is IncrementEvent) {
-      counter++;
-    } else if (event is DecrementEvent) {
-      counter--;
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    try {
+      if (event is IncrementEvent) {
+        counter++;
+      } else if (event is DecrementEvent) {
+        counter--;
+      }
+
+      counterController.add(IncrementSuccess(counter));
+    } catch (e) {
+      counterController.add(IncrementError(e.toString()));
+      return;
     }
 
-    counterController.add(counter);
     debugPrint("${event.runtimeType}");
   }
 }
